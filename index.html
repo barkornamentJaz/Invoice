@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Commercial Invoice System — Dashboard</title>
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:    #0f2044;
+    --navy2:   #1a3260;
+    --blue:    #1e56c8;
+    --accent:  #f0a500;
+    --light:   #f4f7fc;
+    --white:   #ffffff;
+    --gray:    #6b7a99;
+    --border:  #d6dff0;
+    --success: #1a9e5f;
+    --danger:  #c0392b;
+    --text:    #1c2b4a;
+    --shadow:  0 2px 16px rgba(15,32,68,0.10);
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--light);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Top Navigation ── */
+  nav {
+    background: var(--navy);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-brand {
+    color: var(--white);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 16px 24px 16px 0;
+    border-right: 1px solid rgba(255,255,255,0.12);
+    margin-right: 8px;
+    white-space: nowrap;
+  }
+  .nav-brand span { color: var(--accent); }
+  nav a {
+    color: rgba(255,255,255,0.78);
+    text-decoration: none;
+    padding: 18px 16px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    transition: color 0.2s, background 0.2s;
+    display: inline-block;
+  }
+  nav a:hover, nav a.active {
+    color: var(--white);
+    background: rgba(255,255,255,0.08);
+  }
+  nav a.active { border-bottom: 3px solid var(--accent); }
+
+  /* ── Page Layout ── */
+  .page-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 36px 24px 60px;
+  }
+
+  /* ── Page Header ── */
+  .page-header {
+    margin-bottom: 32px;
+  }
+  .page-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .page-header p {
+    color: var(--gray);
+    font-size: 0.95rem;
+  }
+
+  /* ── Stat Cards ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 36px;
+  }
+  .stat-card {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 24px 28px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--blue);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .stat-card.accent { border-left-color: var(--accent); }
+  .stat-card.green  { border-left-color: var(--success); }
+  .stat-card .label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--gray);
+  }
+  .stat-card .value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1;
+  }
+  .stat-card .sub {
+    font-size: 0.8rem;
+    color: var(--gray);
+  }
+
+  /* ── Quick Actions ── */
+  .section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  .action-btn {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 18px;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+  }
+  .action-btn:hover {
+    border-color: var(--blue);
+    box-shadow: 0 4px 20px rgba(30,86,200,0.14);
+    transform: translateY(-2px);
+  }
+  .action-btn .icon {
+    font-size: 1.6rem;
+    margin-bottom: 4px;
+  }
+  .action-btn .title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--navy);
+  }
+  .action-btn .desc {
+    font-size: 0.8rem;
+    color: var(--gray);
+    line-height: 1.4;
+  }
+
+  /* ── Recent Invoices Table ── */
+  .card {
+    background: var(--white);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .card-header {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-header h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .card-body { padding: 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  thead tr { background: var(--navy); }
+  thead th {
+    padding: 11px 14px;
+    text-align: left;
+    color: rgba(255,255,255,0.85);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #f0f4fb; }
+  tbody td {
+    padding: 10px 14px;
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-blue   { background: #dbeafe; color: #1e40af; }
+  .badge-green  { background: #d1fae5; color: #065f46; }
+  .badge-orange { background: #fef3c7; color: #92400e; }
+
+  .loading {
+    color: var(--gray);
+    padding: 24px;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--gray);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav>
+  <div class="nav-brand">Invoice <span>System</span></div>
+  <a href="?page=index" class="active">🏠 Dashboard</a>
+  <a href="?page=invoiceMaster">📋 Add Header</a>
+  <a href="?page=invoiceItems">📦 Add Items</a>
+  <a href="?page=searchInvoice">🔍 Search Invoice</a>
+  <a href="?page=searchItems">🔎 Search Items</a>
+</nav>
+
+<!-- ── Page Content ── -->
+<div class="page-wrap">
+
+  <div class="page-header">
+    <h1>Dashboard</h1>
+    <p>Welcome to the Commercial Invoice Management System</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="label">Total Invoices</div>
+      <div class="value" id="totalInvoices">—</div>
+      <div class="sub">All time</div>
+    </div>
+    <div class="stat-card accent">
+      <div class="label">Recent (Last 30 days)</div>
+      <div class="value" id="recentCount">—</div>
+      <div class="sub">Invoices entered</div>
+    </div>
+    <div class="stat-card green">
+      <div class="label">System Status</div>
+      <div class="value" style="font-size:1.1rem;padding-top:6px;">● Online</div>
+      <div class="sub">All systems operational</div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="section-title">Quick Actions</div>
+  <div class="actions-grid">
+    <a href="?page=invoiceMaster" class="action-btn">
+      <div class="icon">📋</div>
+      <div class="title">Add Invoice Header</div>
+      <div class="desc">Create a new commercial invoice record</div>
+    </a>
+    <a href="?page=invoiceItems" class="action-btn">
+      <div class="icon">📦</div>
+      <div class="title">Add Invoice Items</div>
+      <div class="desc">Add line items to an existing invoice</div>
+    </a>
+    <a href="?page=searchInvoice" class="action-btn">
+      <div class="icon">🔍</div>
+      <div class="title">Search Invoices</div>
+      <div class="desc">Find invoices by number, customer, or date</div>
+    </a>
+    <a href="?page=searchItems" class="action-btn">
+      <div class="icon">🔎</div>
+      <div class="title">Search Items</div>
+      <div class="desc">Search individual line items across invoices</div>
+    </a>
+  </div>
+
+  <!-- Recent Invoices -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Recent Invoices</h3>
+      <a href="?page=searchInvoice" style="font-size:0.82rem;color:var(--blue);text-decoration:none;">View All →</a>
+    </div>
+    <div class="card-body">
+      <div id="recentTableWrap" class="loading">Loading data…</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>Commercial Invoice Management System &mdash; Bark Ornament Private Limited</footer>
+
+<script>
+  // ── Load dashboard data from backend ──
+  function loadDashboard() {
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (!result || !result.success) {
+          document.getElementById('recentTableWrap').innerHTML =
+            '<div class="loading" style="color:#c0392b;">Failed to load data. Please check your Spreadsheet ID in Code.gs.</div>';
+          return;
+        }
+
+        // Set stat values
+        document.getElementById('totalInvoices').textContent = result.totalInvoices || 0;
+
+        // Count recent (last 30 days) from recentInvoices list
+        document.getElementById('recentCount').textContent = result.recentInvoices
+          ? result.recentInvoices.length : 0;
+
+        // Build recent invoices table
+        var invoices = result.recentInvoices || [];
+        if (invoices.length === 0) {
+          document.getElementById('recentTableWrap').innerHTML =
+            '<div class="loading">No invoices found. Start by adding your first invoice.</div>';
+          return;
+        }
+
+        var html = '<table>';
+        html += '<thead><tr>' +
+          '<th>Invoice No</th><th>Date</th><th>Customer</th>' +
+          '<th>Resort</th><th>Shipment</th><th>Currency</th>' +
+          '<th>Total Amt</th><th>Status</th>' +
+          '</tr></thead><tbody>';
+
+        invoices.forEach(function(inv) {
+          var shipBadge = inv['Shipment_Type'] === 'Air Shipment' ? 'badge-blue' :
+                          inv['Shipment_Type'] === 'Sea Shipment' ? 'badge-orange' : 'badge-green';
+
+          html += '<tr>' +
+            '<td><strong>' + esc(inv['Invoice_No']) + '</strong></td>' +
+            '<td>' + esc(inv['Invoice_Date']) + '</td>' +
+            '<td>' + esc(inv['Customer_Name']) + '</td>' +
+            '<td>' + esc(inv['Resort_Name']) + '</td>' +
+            '<td><span class="badge ' + shipBadge + '">' + esc(inv['Shipment_Type']) + '</span></td>' +
+            '<td>' + esc(inv['Currency']) + '</td>' +
+            '<td style="text-align:right;">' + formatNum(inv['Total_Amount']) + '</td>' +
+            '<td><span class="badge badge-green">' + esc(inv['Invoice_Status']) + '</span></td>' +
+            '</tr>';
+        });
+
+        html += '</tbody></table>';
+        document.getElementById('recentTableWrap').innerHTML = html;
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('recentTableWrap').innerHTML =
+          '<div class="loading" style="color:#c0392b;">Error: ' + err.message + '</div>';
+      })
+      .getDashboardData();
+  }
+
+  // ── Helpers ──
+  function esc(v) {
+    if (v === null || v === undefined) return '';
+    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function formatNum(v) {
+    var n = parseFloat(v);
+    if (isNaN(n)) return '0.00';
+    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // Run on load
+  loadDashboard();
+</script>
+</body>
+</html>
