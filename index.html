@@ -262,11 +262,11 @@
 <!-- ── Navigation ── -->
 <nav>
   <div class="nav-brand">Invoice <span>System</span></div>
-  <a href="?page=index" class="active">🏠 Dashboard</a>
-  <a href="?page=invoiceMaster">📋 Add Header</a>
-  <a href="?page=invoiceItems">📦 Add Items</a>
-  <a href="?page=searchInvoice">🔍 Search Invoice</a>
-  <a href="?page=searchItems">🔎 Search Items</a>
+  <a href="index.html" class="active">🏠 Dashboard</a>
+  <a href="InvoiceMaster.html">📋 Add Header</a>
+  <a href="InvoiceItems.html">📦 Add Items</a>
+  <a href="SearchInvoice.html">🔍 Search Invoice</a>
+  <a href="SearchItems.html">🔎 Search Items</a>
 </nav>
 
 <!-- ── Page Content ── -->
@@ -285,7 +285,7 @@
       <div class="sub">All time</div>
     </div>
     <div class="stat-card accent">
-      <div class="label">Recent (Last 30 days)</div>
+      <div class="label">Recent (Last 5)</div>
       <div class="value" id="recentCount">—</div>
       <div class="sub">Invoices entered</div>
     </div>
@@ -299,22 +299,22 @@
   <!-- Quick Actions -->
   <div class="section-title">Quick Actions</div>
   <div class="actions-grid">
-    <a href="?page=invoiceMaster" class="action-btn">
+    <a href="InvoiceMaster.html" class="action-btn">
       <div class="icon">📋</div>
       <div class="title">Add Invoice Header</div>
       <div class="desc">Create a new commercial invoice record</div>
     </a>
-    <a href="?page=invoiceItems" class="action-btn">
+    <a href="InvoiceItems.html" class="action-btn">
       <div class="icon">📦</div>
       <div class="title">Add Invoice Items</div>
       <div class="desc">Add line items to an existing invoice</div>
     </a>
-    <a href="?page=searchInvoice" class="action-btn">
+    <a href="SearchInvoice.html" class="action-btn">
       <div class="icon">🔍</div>
       <div class="title">Search Invoices</div>
       <div class="desc">Find invoices by number, customer, or date</div>
     </a>
-    <a href="?page=searchItems" class="action-btn">
+    <a href="SearchItems.html" class="action-btn">
       <div class="icon">🔎</div>
       <div class="title">Search Items</div>
       <div class="desc">Search individual line items across invoices</div>
@@ -325,7 +325,7 @@
   <div class="card">
     <div class="card-header">
       <h3>Recent Invoices</h3>
-      <a href="?page=searchInvoice" style="font-size:0.82rem;color:var(--blue);text-decoration:none;">View All →</a>
+      <a href="SearchInvoice.html" style="font-size:0.82rem;color:var(--blue);text-decoration:none;">View All →</a>
     </div>
     <div class="card-body">
       <div id="recentTableWrap" class="loading">Loading data…</div>
@@ -337,10 +337,15 @@
 <footer>Commercial Invoice Management System &mdash; Bark Ornament Private Limited</footer>
 
 <script>
-  // ── Load dashboard data from backend ──
+  // ── Apps Script API URL ──
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzcFbdV2M7pmCGn-EHNpiRDDMlTfz3UFP-4idzWZvBplUwDJd5DOkrFbHmJX-JBPW1oJA/exec';
+
+  // ── Load dashboard data ──
   function loadDashboard() {
-    google.script.run
-      .withSuccessHandler(function(result) {
+    fetch(API_URL + '?action=getDashboard')
+      .then(function(r) { return r.json(); })
+      .then(function(result) {
+
         if (!result || !result.success) {
           document.getElementById('recentTableWrap').innerHTML =
             '<div class="loading" style="color:#c0392b;">Failed to load data. Please check your Spreadsheet ID in Code.gs.</div>';
@@ -349,9 +354,7 @@
 
         // Set stat values
         document.getElementById('totalInvoices').textContent = result.totalInvoices || 0;
-
-        // Count recent (last 30 days) from recentInvoices list
-        document.getElementById('recentCount').textContent = result.recentInvoices
+        document.getElementById('recentCount').textContent   = result.recentInvoices
           ? result.recentInvoices.length : 0;
 
         // Build recent invoices table
@@ -374,12 +377,12 @@
                           inv['Shipment_Type'] === 'Sea Shipment' ? 'badge-orange' : 'badge-green';
 
           html += '<tr>' +
-            '<td><strong>' + esc(inv['Invoice_No']) + '</strong></td>' +
-            '<td>' + esc(inv['Invoice_Date']) + '</td>' +
-            '<td>' + esc(inv['Customer_Name']) + '</td>' +
-            '<td>' + esc(inv['Resort_Name']) + '</td>' +
+            '<td><strong>' + esc(inv['Invoice_No'])     + '</strong></td>' +
+            '<td>'         + esc(inv['Invoice_Date'])   + '</td>' +
+            '<td>'         + esc(inv['Customer_Name'])  + '</td>' +
+            '<td>'         + esc(inv['Resort_Name'])    + '</td>' +
             '<td><span class="badge ' + shipBadge + '">' + esc(inv['Shipment_Type']) + '</span></td>' +
-            '<td>' + esc(inv['Currency']) + '</td>' +
+            '<td>'         + esc(inv['Currency'])       + '</td>' +
             '<td style="text-align:right;">' + formatNum(inv['Total_Amount']) + '</td>' +
             '<td><span class="badge badge-green">' + esc(inv['Invoice_Status']) + '</span></td>' +
             '</tr>';
@@ -388,18 +391,21 @@
         html += '</tbody></table>';
         document.getElementById('recentTableWrap').innerHTML = html;
       })
-      .withFailureHandler(function(err) {
+      .catch(function(err) {
         document.getElementById('recentTableWrap').innerHTML =
           '<div class="loading" style="color:#c0392b;">Error: ' + err.message + '</div>';
-      })
-      .getDashboardData();
+      });
   }
 
   // ── Helpers ──
   function esc(v) {
     if (v === null || v === undefined) return '';
-    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return String(v)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
   }
+
   function formatNum(v) {
     var n = parseFloat(v);
     if (isNaN(n)) return '0.00';
