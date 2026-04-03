@@ -78,7 +78,6 @@
   }
   .page-header p { color: var(--gray); font-size: 0.92rem; }
 
-  /* ── Form Card ── */
   .form-card {
     background: var(--white);
     border-radius: 12px;
@@ -135,7 +134,6 @@
   }
   textarea { resize: vertical; min-height: 70px; }
 
-  /* ── Buttons ── */
   .btn-row {
     display: flex;
     gap: 12px;
@@ -161,16 +159,13 @@
   .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
   .btn:active { transform: none; }
 
-  .btn-primary { background: var(--blue); color: var(--white); }
+  .btn-primary   { background: var(--blue);   color: var(--white); }
   .btn-primary:hover { background: #1748b0; }
-
-  .btn-secondary { background: var(--light); color: var(--text); border: 1.5px solid var(--border); }
+  .btn-secondary { background: var(--light);  color: var(--text); border: 1.5px solid var(--border); }
   .btn-secondary:hover { border-color: var(--blue); }
-
-  .btn-accent { background: var(--accent); color: var(--navy); }
+  .btn-accent    { background: var(--accent); color: var(--navy); }
   .btn-accent:hover { background: #d69300; }
 
-  /* ── Alert Messages ── */
   .alert {
     padding: 13px 16px;
     border-radius: 8px;
@@ -181,16 +176,14 @@
     align-items: center;
     gap: 10px;
   }
-  .alert.show { display: flex; }
+  .alert.show    { display: flex; }
   .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
   .alert-danger  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
   .alert-info    { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
 
-  /* ── Loading spinner ── */
   .spinner {
     display: inline-block;
-    width: 16px;
-    height: 16px;
+    width: 16px; height: 16px;
     border: 2px solid rgba(255,255,255,0.4);
     border-top-color: white;
     border-radius: 50%;
@@ -206,13 +199,14 @@
 </head>
 <body>
 
+<!-- ── Navigation ── -->
 <nav>
   <div class="nav-brand">Invoice <span>System</span></div>
-  <a href="?page=index">🏠 Dashboard</a>
-  <a href="?page=invoiceMaster" class="active">📋 Add Header</a>
-  <a href="?page=invoiceItems">📦 Add Items</a>
-  <a href="?page=searchInvoice">🔍 Search Invoice</a>
-  <a href="?page=searchItems">🔎 Search Items</a>
+  <a href="index.html">🏠 Dashboard</a>
+  <a href="InvoiceMaster.html" class="active">📋 Add Header</a>
+  <a href="InvoiceItems.html">📦 Add Items</a>
+  <a href="SearchInvoice.html">🔍 Search Invoice</a>
+  <a href="SearchItems.html">🔎 Search Items</a>
 </nav>
 
 <div class="page-wrap">
@@ -223,50 +217,43 @@
   </div>
 
   <!-- Alert boxes -->
-  <div class="alert alert-danger" id="alertError">
-    <span>⚠️</span><span id="alertErrorMsg">Error message here</span>
+  <div class="alert alert-danger"  id="alertError">
+    <span>⚠️</span><span id="alertErrorMsg"></span>
   </div>
   <div class="alert alert-success" id="alertSuccess">
-    <span>✅</span><span id="alertSuccessMsg">Saved successfully!</span>
+    <span>✅</span><span id="alertSuccessMsg"></span>
   </div>
-  <div class="alert alert-info" id="alertInfo">
-    <span>ℹ️</span><span id="alertInfoMsg">Info message here</span>
+  <div class="alert alert-info"    id="alertInfo">
+    <span>ℹ️</span><span id="alertInfoMsg"></span>
   </div>
 
   <!-- Form Card -->
   <div class="form-card">
-    <div class="form-card-header">
-      📋 Invoice Header Information
-    </div>
+    <div class="form-card-header">📋 Invoice Header Information</div>
     <div class="form-body">
 
       <div class="form-grid">
 
-        <!-- Invoice No -->
         <div class="form-group">
           <label>Invoice No <span class="req">*</span></label>
           <input type="text" id="invoiceNo" placeholder="e.g. IN/26/0050" />
         </div>
 
-        <!-- Invoice Date -->
         <div class="form-group">
           <label>Invoice Date <span class="req">*</span></label>
           <input type="date" id="invoiceDate" />
         </div>
 
-        <!-- Customer Name -->
         <div class="form-group">
           <label>Customer Name <span class="req">*</span></label>
           <input type="text" id="customerName" placeholder="Enter customer / importer name" />
         </div>
 
-        <!-- Resort Name -->
         <div class="form-group">
           <label>Resort Name</label>
           <input type="text" id="resortName" placeholder="Enter resort or project name" />
         </div>
 
-        <!-- Shipment Type -->
         <div class="form-group">
           <label>Shipment Type <span class="req">*</span></label>
           <select id="shipmentType">
@@ -277,19 +264,17 @@
           </select>
         </div>
 
-        <!-- Currency -->
         <div class="form-group">
           <label>Currency <span class="req">*</span></label>
           <input type="text" id="currency" placeholder="e.g. USD, EUR, LKR" />
         </div>
 
-        <!-- Remarks -->
         <div class="form-group full-width">
           <label>Remarks</label>
           <textarea id="remarks" placeholder="Optional notes about this invoice…"></textarea>
         </div>
 
-      </div><!-- /form-grid -->
+      </div>
 
       <!-- Buttons -->
       <div class="btn-row">
@@ -299,32 +284,37 @@
         <button class="btn btn-secondary" onclick="clearForm()">
           🔄 Clear
         </button>
-        <a class="btn btn-accent" id="btnGoItems" href="?page=invoiceItems" style="pointer-events:none;opacity:0.5;">
+        <a class="btn btn-accent" id="btnGoItems"
+           href="InvoiceItems.html"
+           style="pointer-events:none; opacity:0.5;">
           📦 Go to Items →
         </a>
       </div>
 
-    </div><!-- /form-body -->
-  </div><!-- /form-card -->
+    </div>
+  </div>
 
 </div>
 
 <script>
+  // ── API URL ──
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzcFbdV2M7pmCGn-EHNpiRDDMlTfz3UFP-4idzWZvBplUwDJd5DOkrFbHmJX-JBPW1oJA/exec';
+
   // ── Set today's date as default ──
   document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
 
-  // ── Show / hide alert helpers ──
+  // ── Alert helpers ──
   function showError(msg) {
     hideAllAlerts();
     document.getElementById('alertErrorMsg').textContent = msg;
     document.getElementById('alertError').classList.add('show');
-    scrollToTop();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   function showSuccess(msg) {
     hideAllAlerts();
     document.getElementById('alertSuccessMsg').textContent = msg;
     document.getElementById('alertSuccess').classList.add('show');
-    scrollToTop();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   function showInfo(msg) {
     hideAllAlerts();
@@ -332,13 +322,12 @@
     document.getElementById('alertInfo').classList.add('show');
   }
   function hideAllAlerts() {
-    document.querySelectorAll('.alert').forEach(function(el) { el.classList.remove('show'); });
-  }
-  function scrollToTop() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.querySelectorAll('.alert').forEach(function(el) {
+      el.classList.remove('show');
+    });
   }
 
-  // ── Set Save button to loading state ──
+  // ── Loading state ──
   function setLoading(loading) {
     var btn = document.getElementById('btnSave');
     if (loading) {
@@ -350,24 +339,30 @@
     }
   }
 
-  // ── Validate form ──
+  // ── Validate ──
   function validate() {
-    var invoiceNo    = document.getElementById('invoiceNo').value.trim();
-    var invoiceDate  = document.getElementById('invoiceDate').value.trim();
-    var customerName = document.getElementById('customerName').value.trim();
-    var shipmentType = document.getElementById('shipmentType').value;
-    var currency     = document.getElementById('currency').value.trim();
-
-    if (!invoiceNo)    { showError('Invoice No is required.'); return false; }
-    if (!invoiceDate)  { showError('Invoice Date is required.'); return false; }
-    if (!customerName) { showError('Customer Name is required.'); return false; }
-    if (!shipmentType) { showError('Please select a Shipment Type.'); return false; }
-    if (!currency)     { showError('Currency is required.'); return false; }
-
+    if (!document.getElementById('invoiceNo').value.trim())    { showError('Invoice No is required.');            return false; }
+    if (!document.getElementById('invoiceDate').value.trim())  { showError('Invoice Date is required.');          return false; }
+    if (!document.getElementById('customerName').value.trim()) { showError('Customer Name is required.');         return false; }
+    if (!document.getElementById('shipmentType').value)        { showError('Please select a Shipment Type.');     return false; }
+    if (!document.getElementById('currency').value.trim())     { showError('Currency is required.');              return false; }
     return true;
   }
 
-  // ── Main save function ──
+  // ── API call helper (GET method — avoids CORS/redirect issues) ──
+  function apiGet(params) {
+    var qs = Object.keys(params)
+      .map(function(k) {
+        return encodeURIComponent(k) + '=' + encodeURIComponent(
+          typeof params[k] === 'object' ? JSON.stringify(params[k]) : params[k]
+        );
+      })
+      .join('&');
+    return fetch(API_URL + '?' + qs)
+      .then(function(r) { return r.json(); });
+  }
+
+  // ── Save Header ──
   function saveHeader() {
     if (!validate()) return;
     hideAllAlerts();
@@ -384,41 +379,36 @@
       fileLink    : ''
     };
 
-    // First check for duplicate
-    google.script.run
-      .withSuccessHandler(function(dupResult) {
+    // Step 1 — Check duplicate
+    apiGet({ action: 'checkDuplicate', invoiceNo: data.invoiceNo })
+      .then(function(dupResult) {
         if (dupResult.isDuplicate) {
           setLoading(false);
-          showError('Invoice No "' + data.invoiceNo + '" already exists. Please use a different invoice number.');
+          showError('Invoice No "' + data.invoiceNo + '" already exists. Please use a different number.');
           return;
         }
 
-        // Not a duplicate — proceed to save
-        google.script.run
-          .withSuccessHandler(function(saveResult) {
+        // Step 2 — Save header
+        return apiGet({ action: 'saveInvoiceHeader', data: data })
+          .then(function(saveResult) {
             setLoading(false);
             if (saveResult.success) {
-              showSuccess('Invoice header saved successfully! Invoice No: ' + data.invoiceNo);
-              // Enable "Go to Items" button
+              showSuccess('Invoice header saved! Invoice No: ' + data.invoiceNo);
+
+              // Enable Go to Items button with invoice number passed
               var goBtn = document.getElementById('btnGoItems');
-              goBtn.href = '?page=invoiceItems&invoiceNo=' + encodeURIComponent(data.invoiceNo);
+              goBtn.href = 'InvoiceItems.html?invoiceNo=' + encodeURIComponent(data.invoiceNo);
               goBtn.style.pointerEvents = 'auto';
               goBtn.style.opacity = '1';
             } else {
               showError('Save failed: ' + (saveResult.message || 'Unknown error.'));
             }
-          })
-          .withFailureHandler(function(err) {
-            setLoading(false);
-            showError('Server error: ' + err.message);
-          })
-          .saveInvoiceHeader(data);
+          });
       })
-      .withFailureHandler(function(err) {
+      .catch(function(err) {
         setLoading(false);
-        showError('Server error: ' + err.message);
-      })
-      .checkDuplicateInvoice(data.invoiceNo);
+        showError('Network error: ' + err.message);
+      });
   }
 
   // ── Clear form ──
@@ -432,9 +422,8 @@
     document.getElementById('remarks').value      = '';
     hideAllAlerts();
 
-    // Disable Go to Items button
     var goBtn = document.getElementById('btnGoItems');
-    goBtn.href = '?page=invoiceItems';
+    goBtn.href = 'InvoiceItems.html';
     goBtn.style.pointerEvents = 'none';
     goBtn.style.opacity = '0.5';
   }
