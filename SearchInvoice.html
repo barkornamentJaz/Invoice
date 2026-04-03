@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Search Invoice — Commercial Invoice System</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:   #0f2044;
+    --blue:   #1e56c8;
+    --accent: #f0a500;
+    --light:  #f4f7fc;
+    --white:  #ffffff;
+    --gray:   #6b7a99;
+    --border: #d6dff0;
+    --success:#1a9e5f;
+    --danger: #c0392b;
+    --text:   #1c2b4a;
+    --shadow: 0 2px 16px rgba(15,32,68,0.10);
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--light);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  nav {
+    background: var(--navy);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-brand { color: var(--white); font-size: 1.15rem; font-weight: 700; padding: 16px 24px 16px 0; border-right: 1px solid rgba(255,255,255,0.12); margin-right: 8px; white-space: nowrap; }
+  .nav-brand span { color: var(--accent); }
+  nav a { color: rgba(255,255,255,0.78); text-decoration: none; padding: 18px 16px; font-size: 0.88rem; font-weight: 500; transition: color 0.2s, background 0.2s; display: inline-block; }
+  nav a:hover, nav a.active { color: var(--white); background: rgba(255,255,255,0.08); }
+  nav a.active { border-bottom: 3px solid var(--accent); }
+
+  .page-wrap { max-width: 1200px; margin: 0 auto; padding: 36px 24px 60px; }
+  .page-header { margin-bottom: 24px; }
+  .page-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .page-header p { color: var(--gray); font-size: 0.92rem; }
+
+  /* ── Card ── */
+  .card { background: var(--white); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 24px; }
+  .card-header { background: var(--navy); padding: 14px 22px; color: var(--white); font-weight: 700; font-size: 0.92rem; display: flex; align-items: center; justify-content: space-between; }
+  .card-header span { font-size: 0.8rem; font-weight: 400; color: rgba(255,255,255,0.6); }
+  .card-body { padding: 20px 22px; }
+
+  /* ── Filters ── */
+  .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px 20px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  label { font-size: 0.8rem; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+  input[type="text"], input[type="date"], select {
+    padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 7px;
+    font-size: 0.9rem; color: var(--text); outline: none; background: var(--white);
+    transition: border-color 0.2s, box-shadow 0.2s; font-family: inherit;
+  }
+  input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(30,86,200,0.10); }
+
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .btn { padding: 10px 22px; border-radius: 7px; font-size: 0.92rem; font-weight: 600; cursor: pointer; border: none; transition: background 0.2s, transform 0.15s; display: inline-flex; align-items: center; gap: 7px; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: none; }
+  .btn-primary { background: var(--blue); color: var(--white); }
+  .btn-primary:hover { background: #1748b0; }
+  .btn-secondary { background: var(--light); color: var(--text); border: 1.5px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--blue); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ── Results ── */
+  .result-count { font-size: 0.85rem; color: var(--gray); margin-bottom: 14px; }
+  .result-count strong { color: var(--navy); }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; min-width: 800px; }
+  thead tr { background: var(--navy); }
+  thead th { padding: 10px 12px; text-align: left; color: rgba(255,255,255,0.88); font-weight: 600; font-size: 0.77rem; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; }
+  tbody tr:hover { background: #eff6ff; }
+  tbody td { padding: 9px 12px; vertical-align: middle; }
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 0.74rem; font-weight: 600; }
+  .badge-blue   { background: #dbeafe; color: #1e40af; }
+  .badge-green  { background: #d1fae5; color: #065f46; }
+  .badge-orange { background: #fef3c7; color: #92400e; }
+  .empty-state { text-align: center; padding: 48px; color: var(--gray); font-size: 0.9rem; }
+  .empty-icon  { font-size: 2.5rem; margin-bottom: 10px; }
+
+  /* ── Detail panel (invoice + items) ── */
+  .detail-panel { display: none; }
+  .detail-panel.show { display: block; }
+
+  .detail-header-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 18px;
+    font-size: 0.88rem;
+  }
+  .dhi-item { display: flex; flex-direction: column; gap: 3px; }
+  .dhi-label { font-size: 0.75rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+  .dhi-val { font-weight: 700; color: var(--navy); }
+
+  .back-btn {
+    background: none; border: none; cursor: pointer; color: var(--blue);
+    font-size: 0.9rem; font-weight: 600; padding: 0 0 14px 0; display: flex; align-items: center; gap: 5px;
+  }
+  .back-btn:hover { text-decoration: underline; }
+
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; display: none; align-items: center; gap: 10px; }
+  .alert.show { display: flex; }
+  .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+  @media(max-width:600px) { .filter-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Invoice <span>System</span></div>
+  <a href="?page=index">🏠 Dashboard</a>
+  <a href="?page=invoiceMaster">📋 Add Header</a>
+  <a href="?page=invoiceItems">📦 Add Items</a>
+  <a href="?page=searchInvoice" class="active">🔍 Search Invoice</a>
+  <a href="?page=searchItems">🔎 Search Items</a>
+</nav>
+
+<div class="page-wrap">
+
+  <div class="page-header">
+    <h1>Search Invoices</h1>
+    <p>Search by any combination of fields. Click a result row to view full invoice details and items.</p>
+  </div>
+
+  <!-- Error alert -->
+  <div class="alert alert-danger" id="alertError"><span>⚠️</span><span id="alertMsg"></span></div>
+
+  <!-- Search Filters -->
+  <div class="card" id="searchCard">
+    <div class="card-header">🔍 Search Filters <span>All fields optional</span></div>
+    <div class="card-body">
+      <div class="filter-grid">
+        <div class="form-group">
+          <label>Invoice No</label>
+          <input type="text" id="fInvoiceNo" placeholder="e.g. IN/26/" />
+        </div>
+        <div class="form-group">
+          <label>Customer Name</label>
+          <input type="text" id="fCustomerName" placeholder="Customer / importer" />
+        </div>
+        <div class="form-group">
+          <label>Resort Name</label>
+          <input type="text" id="fResortName" placeholder="Resort or project" />
+        </div>
+        <div class="form-group">
+          <label>Shipment Type</label>
+          <select id="fShipmentType">
+            <option value="">— All Types —</option>
+            <option value="Air Shipment">Air Shipment</option>
+            <option value="Sea Shipment">Sea Shipment</option>
+            <option value="Local">Local</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date From</label>
+          <input type="date" id="fDateFrom" />
+        </div>
+        <div class="form-group">
+          <label>Date To</label>
+          <input type="date" id="fDateTo" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnSearch" onclick="doSearch()">🔍 Search</button>
+        <button class="btn btn-secondary" onclick="clearFilters()">🔄 Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Results (list view) -->
+  <div id="resultsSection" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        📋 Search Results
+        <span id="resultCountBadge"></span>
+      </div>
+      <div class="card-body">
+        <div id="resultsTableWrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail View (header + items) -->
+  <div class="card detail-panel" id="detailPanel">
+    <div class="card-header">📄 Invoice Detail</div>
+    <div class="card-body">
+      <button class="back-btn" onclick="backToResults()">← Back to Results</button>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  var lastResults = [];
+
+  function showError(msg) {
+    document.getElementById('alertMsg').textContent = msg;
+    document.getElementById('alertError').classList.add('show');
+  }
+  function hideError() {
+    document.getElementById('alertError').classList.remove('show');
+  }
+
+  function setLoading(loading) {
+    var btn = document.getElementById('btnSearch');
+    btn.disabled = loading;
+    btn.innerHTML = loading ? '<span class="spinner"></span> Searching…' : '🔍 Search';
+  }
+
+  // ── Perform search ──
+  function doSearch() {
+    hideError();
+    setLoading(true);
+
+    var filters = {
+      invoiceNo    : document.getElementById('fInvoiceNo').value.trim(),
+      customerName : document.getElementById('fCustomerName').value.trim(),
+      resortName   : document.getElementById('fResortName').value.trim(),
+      shipmentType : document.getElementById('fShipmentType').value,
+      dateFrom     : document.getElementById('fDateFrom').value,
+      dateTo       : document.getElementById('fDateTo').value
+    };
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        setLoading(false);
+        if (!result.success) {
+          showError('Search failed: ' + (result.message || 'Unknown error.'));
+          return;
+        }
+        lastResults = result.data || [];
+        renderResults(lastResults);
+
+        // If exact invoice number was searched, auto-open detail view
+        if (filters.invoiceNo && lastResults.length === 1) {
+          openDetail(lastResults[0]['Invoice_No']);
+        }
+      })
+      .withFailureHandler(function(err) {
+        setLoading(false);
+        showError('Error: ' + err.message);
+      })
+      .searchInvoices(filters);
+  }
+
+  // ── Render results table ──
+  function renderResults(data) {
+    var section = document.getElementById('resultsSection');
+    var wrap    = document.getElementById('resultsTableWrap');
+    var badge   = document.getElementById('resultCountBadge');
+
+    section.style.display = 'block';
+    document.getElementById('detailPanel').classList.remove('show');
+    badge.textContent = data.length + ' invoice(s) found';
+
+    if (data.length === 0) {
+      wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>No invoices matched your search criteria.</p></div>';
+      return;
+    }
+
+    var html = '<div class="table-wrap"><table>';
+    html += '<thead><tr>' +
+      '<th>Invoice No</th><th>Date</th><th>Customer</th><th>Resort</th>' +
+      '<th>Shipment</th><th>Currency</th><th style="text-align:right;">Total Amt</th>' +
+      '<th style="text-align:center;">Items</th><th>Status</th>' +
+      '</tr></thead><tbody>';
+
+    data.forEach(function(inv) {
+      var shipBadge = inv['Shipment_Type'] === 'Air Shipment' ? 'badge-blue' :
+                      inv['Shipment_Type'] === 'Sea Shipment' ? 'badge-orange' : 'badge-green';
+      html += '<tr onclick="openDetail(\'' + escAttr(inv['Invoice_No']) + '\')" title="Click to view details">' +
+        '<td><strong style="color:var(--blue);">' + esc(inv['Invoice_No']) + '</strong></td>' +
+        '<td>' + esc(inv['Invoice_Date']) + '</td>' +
+        '<td>' + esc(inv['Customer_Name']) + '</td>' +
+        '<td>' + esc(inv['Resort_Name']) + '</td>' +
+        '<td><span class="badge ' + shipBadge + '">' + esc(inv['Shipment_Type']) + '</span></td>' +
+        '<td>' + esc(inv['Currency']) + '</td>' +
+        '<td style="text-align:right;font-weight:700;">' + formatNum(inv['Total_Amount']) + '</td>' +
+        '<td style="text-align:center;">' + esc(inv['Total_Items']) + '</td>' +
+        '<td><span class="badge badge-green">' + esc(inv['Invoice_Status']) + '</span></td>' +
+        '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    wrap.innerHTML = html;
+  }
+
+  // ── Open detail view ──
+  function openDetail(invoiceNo) {
+    var panel = document.getElementById('detailPanel');
+    var content = document.getElementById('detailContent');
+    content.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div><p>Loading invoice details…</p></div>';
+    panel.classList.add('show');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (!result.success) {
+          content.innerHTML = '<div class="empty-state" style="color:var(--danger);">Failed to load invoice: ' + esc(result.message) + '</div>';
+          return;
+        }
+        renderDetail(result);
+      })
+      .withFailureHandler(function(err) {
+        content.innerHTML = '<div class="empty-state" style="color:var(--danger);">Error: ' + esc(err.message) + '</div>';
+      })
+      .getInvoiceWithItems(invoiceNo);
+  }
+
+  // ── Render detail ──
+  function renderDetail(result) {
+    var h = result.header;
+    var items = result.items || [];
+    var content = document.getElementById('detailContent');
+
+    var html = '<div class="detail-header-info">';
+    html += dhiItem('Invoice No',    h['Invoice_No']);
+    html += dhiItem('Invoice Date',  h['Invoice_Date']);
+    html += dhiItem('Customer',      h['Customer_Name']);
+    html += dhiItem('Resort',        h['Resort_Name']);
+    html += dhiItem('Shipment Type', h['Shipment_Type']);
+    html += dhiItem('Currency',      h['Currency']);
+    html += dhiItem('Total Items',   h['Total_Items']);
+    html += dhiItem('Total Qty',     formatNum(h['Total_Qty']));
+    html += dhiItem('Total Amount',  formatNum(h['Total_Amount']));
+    html += dhiItem('Status',        h['Invoice_Status']);
+    html += dhiItem('Remarks',       h['Remarks'] || '—');
+    html += dhiItem('Created At',    h['Created_At']);
+    html += '</div>';
+
+    if (items.length === 0) {
+      html += '<div class="empty-state"><div class="empty-icon">📦</div><p>No items found for this invoice.</p><a href="?page=invoiceItems&invoiceNo=' + encodeURIComponent(h['Invoice_No']) + '" style="color:var(--blue);text-decoration:none;font-weight:600;">+ Add Items →</a></div>';
+    } else {
+      html += '<div class="table-wrap"><table>';
+      html += '<thead><tr><th>#</th><th>Item No</th><th>Description</th><th>Size</th><th>Unit</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Unit Price</th><th style="text-align:right;">Amount</th><th>Resort</th></tr></thead><tbody>';
+
+      items.forEach(function(it, idx) {
+        html += '<tr>' +
+          '<td style="color:var(--gray);text-align:center;">' + (idx+1) + '</td>' +
+          '<td>' + esc(it['Item_No']) + '</td>' +
+          '<td><strong>' + esc(it['Description']) + '</strong></td>' +
+          '<td>' + esc(it['Size']) + '</td>' +
+          '<td>' + esc(it['Unit']) + '</td>' +
+          '<td style="text-align:right;">' + formatNum(it['Qty']) + '</td>' +
+          '<td style="text-align:right;">' + formatNum(it['Unit_Price']) + '</td>' +
+          '<td style="text-align:right;font-weight:700;color:var(--navy);">' + formatNum(it['Amount']) + '</td>' +
+          '<td>' + esc(it['Resort_Name']) + '</td>' +
+          '</tr>';
+      });
+
+      html += '</tbody></table></div>';
+    }
+
+    content.innerHTML = html;
+  }
+
+  function dhiItem(label, value) {
+    return '<div class="dhi-item"><div class="dhi-label">' + esc(label) + '</div><div class="dhi-val">' + esc(value) + '</div></div>';
+  }
+
+  function backToResults() {
+    document.getElementById('detailPanel').classList.remove('show');
+    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function clearFilters() {
+    ['fInvoiceNo','fCustomerName','fResortName','fDateFrom','fDateTo'].forEach(function(id){
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('fShipmentType').value = '';
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('detailPanel').classList.remove('show');
+    hideError();
+  }
+
+  // ── Helpers ──
+  function esc(v) {
+    if (v === null || v === undefined) return '';
+    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function escAttr(v) {
+    return String(v||'').replace(/'/g,"\\'");
+  }
+  function formatNum(v) {
+    var n = parseFloat(v);
+    if (isNaN(n)) return '0.00';
+    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Add Invoice Header — Commercial Invoice System</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:   #0f2044;
+    --blue:   #1e56c8;
+    --accent: #f0a500;
+    --light:  #f4f7fc;
+    --white:  #ffffff;
+    --gray:   #6b7a99;
+    --border: #d6dff0;
+    --success:#1a9e5f;
+    --danger: #c0392b;
+    --text:   #1c2b4a;
+    --shadow: 0 2px 16px rgba(15,32,68,0.10);
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--light);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  nav {
+    background: var(--navy);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-brand {
+    color: var(--white);
+    font-size: 1.15rem;
+    font-weight: 700;
+    padding: 16px 24px 16px 0;
+    border-right: 1px solid rgba(255,255,255,0.12);
+    margin-right: 8px;
+    white-space: nowrap;
+  }
+  .nav-brand span { color: var(--accent); }
+  nav a {
+    color: rgba(255,255,255,0.78);
+    text-decoration: none;
+    padding: 18px 16px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: color 0.2s, background 0.2s;
+    display: inline-block;
+  }
+  nav a:hover, nav a.active {
+    color: var(--white);
+    background: rgba(255,255,255,0.08);
+  }
+  nav a.active { border-bottom: 3px solid var(--accent); }
+
+  .page-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 36px 24px 60px;
+  }
+
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .page-header p { color: var(--gray); font-size: 0.92rem; }
+
+  /* ── Form Card ── */
+  .form-card {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .form-card-header {
+    background: var(--navy);
+    padding: 16px 24px;
+    color: var(--white);
+    font-weight: 700;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .form-body { padding: 28px 28px 24px; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 24px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full-width { grid-column: 1 / -1; }
+
+  label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  label .req { color: var(--danger); margin-left: 2px; }
+
+  input[type="text"],
+  input[type="date"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-size: 0.93rem;
+    color: var(--text);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(30,86,200,0.10);
+  }
+  textarea { resize: vertical; min-height: 70px; }
+
+  /* ── Buttons ── */
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn {
+    padding: 11px 26px;
+    border-radius: 7px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    text-decoration: none;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+  .btn:active { transform: none; }
+
+  .btn-primary { background: var(--blue); color: var(--white); }
+  .btn-primary:hover { background: #1748b0; }
+
+  .btn-secondary { background: var(--light); color: var(--text); border: 1.5px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--blue); }
+
+  .btn-accent { background: var(--accent); color: var(--navy); }
+  .btn-accent:hover { background: #d69300; }
+
+  /* ── Alert Messages ── */
+  .alert {
+    padding: 13px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+  .alert.show { display: flex; }
+  .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+  .alert-danger  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  .alert-info    { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+
+  /* ── Loading spinner ── */
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Invoice <span>System</span></div>
+  <a href="?page=index">🏠 Dashboard</a>
+  <a href="?page=invoiceMaster" class="active">📋 Add Header</a>
+  <a href="?page=invoiceItems">📦 Add Items</a>
+  <a href="?page=searchInvoice">🔍 Search Invoice</a>
+  <a href="?page=searchItems">🔎 Search Items</a>
+</nav>
+
+<div class="page-wrap">
+
+  <div class="page-header">
+    <h1>Add Invoice Header</h1>
+    <p>Enter the main details of a new commercial invoice. Save the header first, then add line items.</p>
+  </div>
+
+  <!-- Alert boxes -->
+  <div class="alert alert-danger" id="alertError">
+    <span>⚠️</span><span id="alertErrorMsg">Error message here</span>
+  </div>
+  <div class="alert alert-success" id="alertSuccess">
+    <span>✅</span><span id="alertSuccessMsg">Saved successfully!</span>
+  </div>
+  <div class="alert alert-info" id="alertInfo">
+    <span>ℹ️</span><span id="alertInfoMsg">Info message here</span>
+  </div>
+
+  <!-- Form Card -->
+  <div class="form-card">
+    <div class="form-card-header">
+      📋 Invoice Header Information
+    </div>
+    <div class="form-body">
+
+      <div class="form-grid">
+
+        <!-- Invoice No -->
+        <div class="form-group">
+          <label>Invoice No <span class="req">*</span></label>
+          <input type="text" id="invoiceNo" placeholder="e.g. IN/26/0050" />
+        </div>
+
+        <!-- Invoice Date -->
+        <div class="form-group">
+          <label>Invoice Date <span class="req">*</span></label>
+          <input type="date" id="invoiceDate" />
+        </div>
+
+        <!-- Customer Name -->
+        <div class="form-group">
+          <label>Customer Name <span class="req">*</span></label>
+          <input type="text" id="customerName" placeholder="Enter customer / importer name" />
+        </div>
+
+        <!-- Resort Name -->
+        <div class="form-group">
+          <label>Resort Name</label>
+          <input type="text" id="resortName" placeholder="Enter resort or project name" />
+        </div>
+
+        <!-- Shipment Type -->
+        <div class="form-group">
+          <label>Shipment Type <span class="req">*</span></label>
+          <select id="shipmentType">
+            <option value="">— Select Shipment Type —</option>
+            <option value="Air Shipment">Air Shipment</option>
+            <option value="Sea Shipment">Sea Shipment</option>
+            <option value="Local">Local</option>
+          </select>
+        </div>
+
+        <!-- Currency -->
+        <div class="form-group">
+          <label>Currency <span class="req">*</span></label>
+          <input type="text" id="currency" placeholder="e.g. USD, EUR, LKR" />
+        </div>
+
+        <!-- Remarks -->
+        <div class="form-group full-width">
+          <label>Remarks</label>
+          <textarea id="remarks" placeholder="Optional notes about this invoice…"></textarea>
+        </div>
+
+      </div><!-- /form-grid -->
+
+      <!-- Buttons -->
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnSave" onclick="saveHeader()">
+          💾 Save Header
+        </button>
+        <button class="btn btn-secondary" onclick="clearForm()">
+          🔄 Clear
+        </button>
+        <a class="btn btn-accent" id="btnGoItems" href="?page=invoiceItems" style="pointer-events:none;opacity:0.5;">
+          📦 Go to Items →
+        </a>
+      </div>
+
+    </div><!-- /form-body -->
+  </div><!-- /form-card -->
+
+</div>
+
+<script>
+  // ── Set today's date as default ──
+  document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
+
+  // ── Show / hide alert helpers ──
+  function showError(msg) {
+    hideAllAlerts();
+    document.getElementById('alertErrorMsg').textContent = msg;
+    document.getElementById('alertError').classList.add('show');
+    scrollToTop();
+  }
+  function showSuccess(msg) {
+    hideAllAlerts();
+    document.getElementById('alertSuccessMsg').textContent = msg;
+    document.getElementById('alertSuccess').classList.add('show');
+    scrollToTop();
+  }
+  function showInfo(msg) {
+    hideAllAlerts();
+    document.getElementById('alertInfoMsg').textContent = msg;
+    document.getElementById('alertInfo').classList.add('show');
+  }
+  function hideAllAlerts() {
+    document.querySelectorAll('.alert').forEach(function(el) { el.classList.remove('show'); });
+  }
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Set Save button to loading state ──
+  function setLoading(loading) {
+    var btn = document.getElementById('btnSave');
+    if (loading) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Saving…';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = '💾 Save Header';
+    }
+  }
+
+  // ── Validate form ──
+  function validate() {
+    var invoiceNo    = document.getElementById('invoiceNo').value.trim();
+    var invoiceDate  = document.getElementById('invoiceDate').value.trim();
+    var customerName = document.getElementById('customerName').value.trim();
+    var shipmentType = document.getElementById('shipmentType').value;
+    var currency     = document.getElementById('currency').value.trim();
+
+    if (!invoiceNo)    { showError('Invoice No is required.'); return false; }
+    if (!invoiceDate)  { showError('Invoice Date is required.'); return false; }
+    if (!customerName) { showError('Customer Name is required.'); return false; }
+    if (!shipmentType) { showError('Please select a Shipment Type.'); return false; }
+    if (!currency)     { showError('Currency is required.'); return false; }
+
+    return true;
+  }
+
+  // ── Main save function ──
+  function saveHeader() {
+    if (!validate()) return;
+    hideAllAlerts();
+    setLoading(true);
+
+    var data = {
+      invoiceNo   : document.getElementById('invoiceNo').value.trim(),
+      invoiceDate : document.getElementById('invoiceDate').value.trim(),
+      customerName: document.getElementById('customerName').value.trim(),
+      resortName  : document.getElementById('resortName').value.trim(),
+      shipmentType: document.getElementById('shipmentType').value,
+      currency    : document.getElementById('currency').value.trim(),
+      remarks     : document.getElementById('remarks').value.trim(),
+      fileLink    : ''
+    };
+
+    // First check for duplicate
+    google.script.run
+      .withSuccessHandler(function(dupResult) {
+        if (dupResult.isDuplicate) {
+          setLoading(false);
+          showError('Invoice No "' + data.invoiceNo + '" already exists. Please use a different invoice number.');
+          return;
+        }
+
+        // Not a duplicate — proceed to save
+        google.script.run
+          .withSuccessHandler(function(saveResult) {
+            setLoading(false);
+            if (saveResult.success) {
+              showSuccess('Invoice header saved successfully! Invoice No: ' + data.invoiceNo);
+              // Enable "Go to Items" button
+              var goBtn = document.getElementById('btnGoItems');
+              goBtn.href = '?page=invoiceItems&invoiceNo=' + encodeURIComponent(data.invoiceNo);
+              goBtn.style.pointerEvents = 'auto';
+              goBtn.style.opacity = '1';
+            } else {
+              showError('Save failed: ' + (saveResult.message || 'Unknown error.'));
+            }
+          })
+          .withFailureHandler(function(err) {
+            setLoading(false);
+            showError('Server error: ' + err.message);
+          })
+          .saveInvoiceHeader(data);
+      })
+      .withFailureHandler(function(err) {
+        setLoading(false);
+        showError('Server error: ' + err.message);
+      })
+      .checkDuplicateInvoice(data.invoiceNo);
+  }
+
+  // ── Clear form ──
+  function clearForm() {
+    document.getElementById('invoiceNo').value    = '';
+    document.getElementById('invoiceDate').value  = new Date().toISOString().split('T')[0];
+    document.getElementById('customerName').value = '';
+    document.getElementById('resortName').value   = '';
+    document.getElementById('shipmentType').value = '';
+    document.getElementById('currency').value     = '';
+    document.getElementById('remarks').value      = '';
+    hideAllAlerts();
+
+    // Disable Go to Items button
+    var goBtn = document.getElementById('btnGoItems');
+    goBtn.href = '?page=invoiceItems';
+    goBtn.style.pointerEvents = 'none';
+    goBtn.style.opacity = '0.5';
+  }
+</script>
+</body>
+</html>

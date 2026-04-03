@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Add Invoice Items — Commercial Invoice System</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:   #0f2044;
+    --blue:   #1e56c8;
+    --accent: #f0a500;
+    --light:  #f4f7fc;
+    --white:  #ffffff;
+    --gray:   #6b7a99;
+    --border: #d6dff0;
+    --success:#1a9e5f;
+    --danger: #c0392b;
+    --text:   #1c2b4a;
+    --shadow: 0 2px 16px rgba(15,32,68,0.10);
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--light);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  nav {
+    background: var(--navy);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-brand {
+    color: var(--white);
+    font-size: 1.15rem;
+    font-weight: 700;
+    padding: 16px 24px 16px 0;
+    border-right: 1px solid rgba(255,255,255,0.12);
+    margin-right: 8px;
+    white-space: nowrap;
+  }
+  .nav-brand span { color: var(--accent); }
+  nav a {
+    color: rgba(255,255,255,0.78);
+    text-decoration: none;
+    padding: 18px 16px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: color 0.2s, background 0.2s;
+    display: inline-block;
+  }
+  nav a:hover, nav a.active {
+    color: var(--white);
+    background: rgba(255,255,255,0.08);
+  }
+  nav a.active { border-bottom: 3px solid var(--accent); }
+
+  .page-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 36px 24px 60px;
+  }
+
+  .page-header { margin-bottom: 24px; }
+  .page-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .page-header p { color: var(--gray); font-size: 0.92rem; }
+
+  /* ── Alert ── */
+  .alert {
+    padding: 13px 16px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+  .alert.show { display: flex; }
+  .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+  .alert-danger  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  .alert-info    { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--white);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .card-header {
+    background: var(--navy);
+    padding: 14px 22px;
+    color: var(--white);
+    font-weight: 700;
+    font-size: 0.92rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-body { padding: 20px 22px; }
+
+  /* ── Invoice Lookup ── */
+  .lookup-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  .lookup-row .form-group { flex: 1; min-width: 200px; }
+  label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 6px;
+  }
+  label .req { color: var(--danger); margin-left: 2px; }
+  input[type="text"], input[type="date"], select {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-size: 0.93rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+    background: var(--white);
+  }
+  input:focus, select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(30,86,200,0.10);
+  }
+
+  /* ── Header Info Banner ── */
+  .header-info {
+    display: none;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-top: 14px;
+    font-size: 0.88rem;
+    color: var(--navy);
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .header-info.show { display: flex; }
+  .header-info .info-item { display: flex; flex-direction: column; gap: 2px; }
+  .header-info .info-label { font-size: 0.75rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+  .header-info .info-val { font-weight: 700; color: var(--navy); }
+
+  /* ── Items Table ── */
+  .table-wrap { overflow-x: auto; }
+  table.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    min-width: 900px;
+  }
+  table.items-table thead tr { background: var(--navy); }
+  table.items-table thead th {
+    padding: 10px 10px;
+    text-align: left;
+    color: rgba(255,255,255,0.9);
+    font-weight: 600;
+    font-size: 0.77rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  table.items-table thead th.center { text-align: center; }
+  table.items-table tbody tr { border-bottom: 1px solid var(--border); }
+  table.items-table tbody tr:hover { background: #f8faff; }
+  table.items-table tbody td { padding: 6px 6px; vertical-align: middle; }
+
+  table.items-table td input[type="text"],
+  table.items-table td input[type="number"] {
+    width: 100%;
+    padding: 7px 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 5px;
+    font-size: 0.85rem;
+    color: var(--text);
+    outline: none;
+    background: var(--white);
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  table.items-table td input:focus { border-color: var(--blue); }
+  table.items-table td.amount-cell {
+    text-align: right;
+    font-weight: 700;
+    color: var(--navy);
+    white-space: nowrap;
+    padding-right: 10px;
+  }
+  table.items-table td.line-no {
+    text-align: center;
+    color: var(--gray);
+    font-size: 0.8rem;
+    width: 36px;
+  }
+  table.items-table td.del-cell { text-align: center; width: 38px; }
+  .del-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--danger);
+    font-size: 1.1rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .del-btn:hover { background: #fee2e2; }
+
+  /* ── Totals Row ── */
+  .totals-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 32px;
+    padding: 14px 12px 6px;
+    border-top: 2px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .totals-row .tot-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+  .totals-row .tot-label { font-size: 0.75rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+  .totals-row .tot-val { font-size: 1.15rem; font-weight: 700; color: var(--navy); }
+  .totals-row .tot-val.accent { color: var(--blue); }
+
+  /* ── Buttons ── */
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 16px 0 4px;
+  }
+  .btn {
+    padding: 10px 22px;
+    border-radius: 7px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    text-decoration: none;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+  .btn:active { transform: none; }
+  .btn-primary   { background: var(--blue); color: var(--white); }
+  .btn-primary:hover { background: #1748b0; }
+  .btn-secondary { background: var(--light); color: var(--text); border: 1.5px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--blue); }
+  .btn-success   { background: var(--success); color: var(--white); }
+  .btn-success:hover { background: #158050; }
+  .btn-danger    { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; }
+  .btn-danger:hover { background: #fecaca; }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Invoice <span>System</span></div>
+  <a href="?page=index">🏠 Dashboard</a>
+  <a href="?page=invoiceMaster">📋 Add Header</a>
+  <a href="?page=invoiceItems" class="active">📦 Add Items</a>
+  <a href="?page=searchInvoice">🔍 Search Invoice</a>
+  <a href="?page=searchItems">🔎 Search Items</a>
+</nav>
+
+<div class="page-wrap">
+
+  <div class="page-header">
+    <h1>Add Invoice Items</h1>
+    <p>Enter the invoice number, load header info, then add as many line items as needed.</p>
+  </div>
+
+  <!-- Alerts -->
+  <div class="alert alert-danger" id="alertError">
+    <span>⚠️</span><span id="alertErrorMsg"></span>
+  </div>
+  <div class="alert alert-success" id="alertSuccess">
+    <span>✅</span><span id="alertSuccessMsg"></span>
+  </div>
+
+  <!-- Step 1: Invoice Lookup -->
+  <div class="card">
+    <div class="card-header">🔍 Step 1: Load Invoice Header</div>
+    <div class="card-body">
+      <div class="lookup-row">
+        <div class="form-group">
+          <label>Invoice No <span class="req">*</span></label>
+          <input type="text" id="invoiceNo" placeholder="e.g. IN/26/0050" />
+        </div>
+        <button class="btn btn-primary" onclick="loadHeader()">🔍 Load Header</button>
+        <a class="btn btn-secondary" href="?page=invoiceMaster">+ New Invoice Header</a>
+      </div>
+
+      <!-- Header info display -->
+      <div class="header-info" id="headerInfoBox">
+        <div class="info-item">
+          <div class="info-label">Invoice No</div>
+          <div class="info-val" id="hInvoiceNo">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Date</div>
+          <div class="info-val" id="hInvoiceDate">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Customer</div>
+          <div class="info-val" id="hCustomerName">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Resort</div>
+          <div class="info-val" id="hResortName">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Shipment Type</div>
+          <div class="info-val" id="hShipmentType">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Currency</div>
+          <div class="info-val" id="hCurrency">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Item Rows -->
+  <div class="card">
+    <div class="card-header">📦 Step 2: Enter Line Items</div>
+    <div class="card-body">
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <table class="items-table" id="itemsTable">
+          <thead>
+            <tr>
+              <th class="center">#</th>
+              <th>Item No</th>
+              <th style="min-width:200px;">Description</th>
+              <th>Size</th>
+              <th>Unit</th>
+              <th style="min-width:80px;">Qty</th>
+              <th style="min-width:100px;">Unit Price</th>
+              <th style="min-width:110px;">Amount</th>
+              <th style="min-width:150px;">Resort Name</th>
+              <th class="center">Del</th>
+            </tr>
+          </thead>
+          <tbody id="itemsBody">
+            <!-- Rows added dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totals -->
+      <div class="totals-row">
+        <div class="tot-item">
+          <div class="tot-label">Total Rows</div>
+          <div class="tot-val" id="totalRows">0</div>
+        </div>
+        <div class="tot-item">
+          <div class="tot-label">Total Qty</div>
+          <div class="tot-val" id="totalQty">0.00</div>
+        </div>
+        <div class="tot-item">
+          <div class="tot-label">Total Amount</div>
+          <div class="tot-val accent" id="totalAmount">0.00</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="addRow()">➕ Add Row</button>
+        <button class="btn btn-danger" onclick="removeLastRow()">➖ Remove Last Row</button>
+        <button class="btn btn-success" id="btnSaveItems" onclick="saveItems()" disabled>
+          💾 Save Items
+        </button>
+        <button class="btn btn-secondary" onclick="clearItems()">🔄 Clear All Rows</button>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<script>
+  // ── State ──
+  var headerLoaded = false;
+  var loadedHeader = null;
+  var rowCount = 0;
+
+  // ── Check URL params for pre-fill ──
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    var invNo = params.get('invoiceNo');
+    if (invNo) {
+      document.getElementById('invoiceNo').value = invNo;
+      loadHeader();
+    }
+  })();
+
+  // ── Alerts ──
+  function showError(msg) {
+    hideAlerts();
+    document.getElementById('alertErrorMsg').textContent = msg;
+    document.getElementById('alertError').classList.add('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function showSuccess(msg) {
+    hideAlerts();
+    document.getElementById('alertSuccessMsg').textContent = msg;
+    document.getElementById('alertSuccess').classList.add('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function hideAlerts() {
+    document.querySelectorAll('.alert').forEach(function(el){ el.classList.remove('show'); });
+  }
+
+  // ── Load Header ──
+  function loadHeader() {
+    var invNo = document.getElementById('invoiceNo').value.trim();
+    if (!invNo) { showError('Please enter an Invoice No to load.'); return; }
+    hideAlerts();
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (!result.success) {
+          showError('Invoice not found: ' + invNo + '. Please save the header first.');
+          headerLoaded = false;
+          loadedHeader = null;
+          document.getElementById('headerInfoBox').classList.remove('show');
+          document.getElementById('btnSaveItems').disabled = true;
+          return;
+        }
+        loadedHeader = result.data;
+        headerLoaded = true;
+
+        // Populate info box
+        document.getElementById('hInvoiceNo').textContent    = loadedHeader['Invoice_No']    || '—';
+        document.getElementById('hInvoiceDate').textContent  = loadedHeader['Invoice_Date']  || '—';
+        document.getElementById('hCustomerName').textContent = loadedHeader['Customer_Name'] || '—';
+        document.getElementById('hResortName').textContent   = loadedHeader['Resort_Name']   || '—';
+        document.getElementById('hShipmentType').textContent = loadedHeader['Shipment_Type'] || '—';
+        document.getElementById('hCurrency').textContent     = loadedHeader['Currency']      || '—';
+        document.getElementById('headerInfoBox').classList.add('show');
+
+        // Enable save button
+        document.getElementById('btnSaveItems').disabled = false;
+
+        // Add first row if table is empty
+        if (document.getElementById('itemsBody').children.length === 0) {
+          addRow();
+        }
+      })
+      .withFailureHandler(function(err) {
+        showError('Error loading header: ' + err.message);
+      })
+      .getInvoiceHeader(invNo);
+  }
+
+  // ── Add a new row to the items table ──
+  function addRow() {
+    rowCount++;
+    var tbody = document.getElementById('itemsBody');
+    var tr = document.createElement('tr');
+    tr.id = 'row_' + rowCount;
+
+    var resortDefault = loadedHeader ? (loadedHeader['Resort_Name'] || '') : '';
+
+    tr.innerHTML =
+      '<td class="line-no">' + rowCount + '</td>' +
+      '<td><input type="text" placeholder="Item #" style="width:80px;" /></td>' +
+      '<td><input type="text" placeholder="Description" style="min-width:190px;" /></td>' +
+      '<td><input type="text" placeholder="Size" style="width:90px;" /></td>' +
+      '<td><input type="text" placeholder="Unit" style="width:70px;" /></td>' +
+      '<td><input type="number" placeholder="0" min="0" step="any" style="width:75px;" oninput="calcRow(this)" /></td>' +
+      '<td><input type="number" placeholder="0.00" min="0" step="any" style="width:95px;" oninput="calcRow(this)" /></td>' +
+      '<td class="amount-cell">0.00</td>' +
+      '<td><input type="text" value="' + escAttr(resortDefault) + '" placeholder="Resort name" /></td>' +
+      '<td class="del-cell"><button class="del-btn" onclick="removeRow(\'row_' + rowCount + '\')" title="Delete row">✕</button></td>';
+
+    tbody.appendChild(tr);
+    updateTotals();
+
+    // Focus on description of new row
+    tr.querySelectorAll('input')[1].focus();
+  }
+
+  // ── Calc Amount for a row ──
+  function calcRow(input) {
+    var tr   = input.closest('tr');
+    var inputs = tr.querySelectorAll('input[type="number"]');
+    var qty   = parseFloat(inputs[0].value) || 0;
+    var price = parseFloat(inputs[1].value) || 0;
+    var amt   = qty * price;
+    tr.querySelector('.amount-cell').textContent = formatNum(amt);
+    updateTotals();
+  }
+
+  // ── Update footer totals ──
+  function updateTotals() {
+    var tbody = document.getElementById('itemsBody');
+    var rows  = tbody.querySelectorAll('tr');
+    var totalRows  = rows.length;
+    var totalQty   = 0;
+    var totalAmt   = 0;
+
+    rows.forEach(function(tr) {
+      var inputs = tr.querySelectorAll('input[type="number"]');
+      totalQty += parseFloat(inputs[0] ? inputs[0].value : 0) || 0;
+      var amtText = tr.querySelector('.amount-cell');
+      if (amtText) {
+        totalAmt += parseFloat(amtText.textContent.replace(/,/g,'')) || 0;
+      }
+    });
+
+    document.getElementById('totalRows').textContent  = totalRows;
+    document.getElementById('totalQty').textContent   = formatNum(totalQty);
+    document.getElementById('totalAmount').textContent = formatNum(totalAmt);
+  }
+
+  // ── Remove specific row ──
+  function removeRow(rowId) {
+    var row = document.getElementById(rowId);
+    if (row) { row.remove(); updateTotals(); }
+  }
+
+  // ── Remove last row ──
+  function removeLastRow() {
+    var tbody = document.getElementById('itemsBody');
+    var rows  = tbody.querySelectorAll('tr');
+    if (rows.length === 0) { showError('No rows to remove.'); return; }
+    rows[rows.length - 1].remove();
+    updateTotals();
+  }
+
+  // ── Clear all rows ──
+  function clearItems() {
+    document.getElementById('itemsBody').innerHTML = '';
+    rowCount = 0;
+    updateTotals();
+  }
+
+  // ── Save items ──
+  function saveItems() {
+    if (!headerLoaded || !loadedHeader) {
+      showError('Please load a valid invoice header before saving items.');
+      return;
+    }
+
+    var tbody = document.getElementById('itemsBody');
+    var rows  = tbody.querySelectorAll('tr');
+
+    if (rows.length === 0) {
+      showError('Please add at least one item row.');
+      return;
+    }
+
+    var items = [];
+    var hasError = false;
+
+    rows.forEach(function(tr, idx) {
+      var inputs      = tr.querySelectorAll('input');
+      var numInputs   = tr.querySelectorAll('input[type="number"]');
+      var amtCell     = tr.querySelector('.amount-cell');
+
+      var itemNo      = inputs[0].value.trim();
+      var description = inputs[1].value.trim();
+      var size        = inputs[2].value.trim();
+      var unit        = inputs[3].value.trim();
+      var qty         = parseFloat(numInputs[0].value) || 0;
+      var unitPrice   = parseFloat(numInputs[1].value) || 0;
+      var amount      = parseFloat((amtCell ? amtCell.textContent.replace(/,/g,'') : 0)) || 0;
+      var resortName  = inputs[4].value.trim();
+
+      if (!description) {
+        showError('Row ' + (idx + 1) + ': Description is required.');
+        hasError = true;
+        return;
+      }
+
+      items.push({ itemNo, description, size, unit, qty, unitPrice, amount, resortName });
+    });
+
+    if (hasError) return;
+
+    // Disable button
+    var btn = document.getElementById('btnSaveItems');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Saving…';
+
+    var payload = {
+      invoiceNo: loadedHeader['Invoice_No'],
+      items: items
+    };
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        btn.disabled = false;
+        btn.innerHTML = '💾 Save Items';
+        if (result.success) {
+          showSuccess(result.message + ' Totals have been updated in Invoices_Master.');
+          clearItems();
+          // Re-add one blank row
+          addRow();
+        } else {
+          showError('Save failed: ' + (result.message || 'Unknown error.'));
+        }
+      })
+      .withFailureHandler(function(err) {
+        btn.disabled = false;
+        btn.innerHTML = '💾 Save Items';
+        showError('Server error: ' + err.message);
+      })
+      .saveInvoiceItems(payload);
+  }
+
+  // ── Helpers ──
+  function formatNum(n) {
+    var num = parseFloat(n);
+    if (isNaN(num)) return '0.00';
+    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function escAttr(v) {
+    return String(v || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+</script>
+</body>
+</html>

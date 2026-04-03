@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Search Items — Commercial Invoice System</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:   #0f2044;
+    --blue:   #1e56c8;
+    --accent: #f0a500;
+    --light:  #f4f7fc;
+    --white:  #ffffff;
+    --gray:   #6b7a99;
+    --border: #d6dff0;
+    --success:#1a9e5f;
+    --danger: #c0392b;
+    --text:   #1c2b4a;
+    --shadow: 0 2px 16px rgba(15,32,68,0.10);
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--light);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  nav {
+    background: var(--navy); padding: 0 32px; display: flex; align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18); position: sticky; top: 0; z-index: 100;
+  }
+  .nav-brand { color: var(--white); font-size: 1.15rem; font-weight: 700; padding: 16px 24px 16px 0; border-right: 1px solid rgba(255,255,255,0.12); margin-right: 8px; white-space: nowrap; }
+  .nav-brand span { color: var(--accent); }
+  nav a { color: rgba(255,255,255,0.78); text-decoration: none; padding: 18px 16px; font-size: 0.88rem; font-weight: 500; transition: color 0.2s, background 0.2s; display: inline-block; }
+  nav a:hover, nav a.active { color: var(--white); background: rgba(255,255,255,0.08); }
+  nav a.active { border-bottom: 3px solid var(--accent); }
+
+  .page-wrap { max-width: 1300px; margin: 0 auto; padding: 36px 24px 60px; }
+  .page-header { margin-bottom: 24px; }
+  .page-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .page-header p { color: var(--gray); font-size: 0.92rem; }
+
+  /* ── Card ── */
+  .card { background: var(--white); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 24px; }
+  .card-header { background: var(--navy); padding: 14px 22px; color: var(--white); font-weight: 700; font-size: 0.92rem; display: flex; align-items: center; justify-content: space-between; }
+  .card-header span.sub { font-size: 0.8rem; font-weight: 400; color: rgba(255,255,255,0.6); }
+  .card-body { padding: 20px 22px; }
+
+  /* ── Filters ── */
+  .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px 20px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  label { font-size: 0.8rem; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+  input[type="text"], input[type="date"], select {
+    padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 7px;
+    font-size: 0.9rem; color: var(--text); outline: none; background: var(--white);
+    transition: border-color 0.2s, box-shadow 0.2s; font-family: inherit;
+  }
+  input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(30,86,200,0.10); }
+
+  /* ── Buttons ── */
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .btn { padding: 10px 22px; border-radius: 7px; font-size: 0.92rem; font-weight: 600; cursor: pointer; border: none; transition: background 0.2s, transform 0.15s; display: inline-flex; align-items: center; gap: 7px; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: none; }
+  .btn-primary   { background: var(--blue); color: var(--white); }
+  .btn-primary:hover { background: #1748b0; }
+  .btn-secondary { background: var(--light); color: var(--text); border: 1.5px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--blue); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ── Results ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.84rem; min-width: 1000px; }
+  thead tr { background: var(--navy); }
+  thead th { padding: 10px 10px; text-align: left; color: rgba(255,255,255,0.88); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+  thead th.right { text-align: right; }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:hover { background: #f8faff; }
+  tbody td { padding: 8px 10px; vertical-align: middle; }
+  tbody td.right { text-align: right; font-weight: 700; }
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 0.73rem; font-weight: 600; }
+  .badge-blue   { background: #dbeafe; color: #1e40af; }
+  .badge-green  { background: #d1fae5; color: #065f46; }
+  .badge-orange { background: #fef3c7; color: #92400e; }
+
+  .empty-state { text-align: center; padding: 48px; color: var(--gray); font-size: 0.9rem; }
+  .empty-icon  { font-size: 2.5rem; margin-bottom: 10px; }
+
+  /* ── Summary bar ── */
+  .summary-bar {
+    display: flex; gap: 32px; flex-wrap: wrap;
+    background: #eff6ff; border: 1px solid #bfdbfe;
+    border-radius: 8px; padding: 14px 20px; margin-bottom: 14px;
+  }
+  .sum-item { display: flex; flex-direction: column; gap: 2px; }
+  .sum-label { font-size: 0.75rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+  .sum-val { font-size: 1.1rem; font-weight: 700; color: var(--navy); }
+  .sum-val.accent { color: var(--blue); }
+
+  .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; display: none; align-items: center; gap: 10px; }
+  .alert.show { display: flex; }
+  .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media(max-width:600px) { .filter-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Invoice <span>System</span></div>
+  <a href="?page=index">🏠 Dashboard</a>
+  <a href="?page=invoiceMaster">📋 Add Header</a>
+  <a href="?page=invoiceItems">📦 Add Items</a>
+  <a href="?page=searchInvoice">🔍 Search Invoice</a>
+  <a href="?page=searchItems" class="active">🔎 Search Items</a>
+</nav>
+
+<div class="page-wrap">
+
+  <div class="page-header">
+    <h1>Search Line Items</h1>
+    <p>Search individual item rows across all invoices by description, resort, shipment type, and more.</p>
+  </div>
+
+  <!-- Error alert -->
+  <div class="alert alert-danger" id="alertError"><span>⚠️</span><span id="alertMsg"></span></div>
+
+  <!-- Filters -->
+  <div class="card">
+    <div class="card-header">🔎 Search Filters <span class="sub">All fields optional — partial matches supported</span></div>
+    <div class="card-body">
+      <div class="filter-grid">
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="fDescription" placeholder="Keyword in item description" />
+        </div>
+        <div class="form-group">
+          <label>Size</label>
+          <input type="text" id="fSize" placeholder="e.g. 10x20, Large" />
+        </div>
+        <div class="form-group">
+          <label>Resort Name</label>
+          <input type="text" id="fResortName" placeholder="Resort or project" />
+        </div>
+        <div class="form-group">
+          <label>Shipment Type</label>
+          <select id="fShipmentType">
+            <option value="">— All Types —</option>
+            <option value="Air Shipment">Air Shipment</option>
+            <option value="Sea Shipment">Sea Shipment</option>
+            <option value="Local">Local</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Invoice No</label>
+          <input type="text" id="fInvoiceNo" placeholder="e.g. IN/26/" />
+        </div>
+        <div class="form-group">
+          <label>Date From</label>
+          <input type="date" id="fDateFrom" />
+        </div>
+        <div class="form-group">
+          <label>Date To</label>
+          <input type="date" id="fDateTo" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnSearch" onclick="doSearch()">🔎 Search Items</button>
+        <button class="btn btn-secondary" onclick="clearFilters()">🔄 Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="resultsSection" style="display:none;">
+    <div class="card">
+      <div class="card-header">
+        📦 Item Search Results
+        <span class="sub" id="resultCountBadge"></span>
+      </div>
+      <div class="card-body">
+        <!-- Summary totals -->
+        <div class="summary-bar" id="summaryBar" style="display:none;">
+          <div class="sum-item">
+            <div class="sum-label">Matching Rows</div>
+            <div class="sum-val" id="sumRows">0</div>
+          </div>
+          <div class="sum-item">
+            <div class="sum-label">Total Qty</div>
+            <div class="sum-val" id="sumQty">0.00</div>
+          </div>
+          <div class="sum-item">
+            <div class="sum-label">Total Amount</div>
+            <div class="sum-val accent" id="sumAmount">0.00</div>
+          </div>
+        </div>
+        <div id="resultsTableWrap"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function showError(msg) {
+    document.getElementById('alertMsg').textContent = msg;
+    document.getElementById('alertError').classList.add('show');
+  }
+  function hideError() {
+    document.getElementById('alertError').classList.remove('show');
+  }
+  function setLoading(loading) {
+    var btn = document.getElementById('btnSearch');
+    btn.disabled = loading;
+    btn.innerHTML = loading ? '<span class="spinner"></span> Searching…' : '🔎 Search Items';
+  }
+
+  // ── Search ──
+  function doSearch() {
+    hideError();
+    setLoading(true);
+
+    var filters = {
+      description  : document.getElementById('fDescription').value.trim(),
+      size         : document.getElementById('fSize').value.trim(),
+      resortName   : document.getElementById('fResortName').value.trim(),
+      shipmentType : document.getElementById('fShipmentType').value,
+      invoiceNo    : document.getElementById('fInvoiceNo').value.trim(),
+      dateFrom     : document.getElementById('fDateFrom').value,
+      dateTo       : document.getElementById('fDateTo').value
+    };
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        setLoading(false);
+        if (!result.success) {
+          showError('Search failed: ' + (result.message || 'Unknown error.'));
+          return;
+        }
+        renderResults(result.data || []);
+      })
+      .withFailureHandler(function(err) {
+        setLoading(false);
+        showError('Error: ' + err.message);
+      })
+      .searchItems(filters);
+  }
+
+  // ── Render results ──
+  function renderResults(data) {
+    var section = document.getElementById('resultsSection');
+    var wrap    = document.getElementById('resultsTableWrap');
+    var badge   = document.getElementById('resultCountBadge');
+    var sumBar  = document.getElementById('summaryBar');
+
+    section.style.display = 'block';
+    badge.textContent = data.length + ' item(s) found';
+
+    if (data.length === 0) {
+      sumBar.style.display = 'none';
+      wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><p>No items matched your search criteria.</p></div>';
+      return;
+    }
+
+    // Calculate summary totals
+    var totalQty = 0;
+    var totalAmt = 0;
+    data.forEach(function(it) {
+      totalQty += parseFloat(it['Qty'])    || 0;
+      totalAmt += parseFloat(it['Amount']) || 0;
+    });
+
+    document.getElementById('sumRows').textContent   = data.length;
+    document.getElementById('sumQty').textContent    = formatNum(totalQty);
+    document.getElementById('sumAmount').textContent = formatNum(totalAmt);
+    sumBar.style.display = 'flex';
+
+    // Build table
+    var html = '<div class="table-wrap"><table>';
+    html += '<thead><tr>' +
+      '<th>#</th>' +
+      '<th>Invoice No</th>' +
+      '<th>Invoice Date</th>' +
+      '<th>Shipment</th>' +
+      '<th>Customer</th>' +
+      '<th>Resort</th>' +
+      '<th>Item No</th>' +
+      '<th style="min-width:200px;">Description</th>' +
+      '<th>Size</th>' +
+      '<th>Unit</th>' +
+      '<th class="right">Qty</th>' +
+      '<th class="right">Unit Price</th>' +
+      '<th class="right">Amount</th>' +
+      '</tr></thead><tbody>';
+
+    data.forEach(function(it, idx) {
+      var shipBadge = it['Shipment_Type'] === 'Air Shipment' ? 'badge-blue' :
+                      it['Shipment_Type'] === 'Sea Shipment' ? 'badge-orange' : 'badge-green';
+
+      html += '<tr>' +
+        '<td style="color:var(--gray);text-align:center;font-size:0.8rem;">' + (idx+1) + '</td>' +
+        '<td><strong style="color:var(--blue);">' + esc(it['Invoice_No']) + '</strong></td>' +
+        '<td>' + esc(it['Invoice_Date']) + '</td>' +
+        '<td><span class="badge ' + shipBadge + '">' + esc(it['Shipment_Type']) + '</span></td>' +
+        '<td>' + esc(it['Customer_Name']) + '</td>' +
+        '<td>' + esc(it['Resort_Name']) + '</td>' +
+        '<td>' + esc(it['Item_No']) + '</td>' +
+        '<td><strong>' + esc(it['Description']) + '</strong></td>' +
+        '<td>' + esc(it['Size']) + '</td>' +
+        '<td>' + esc(it['Unit']) + '</td>' +
+        '<td class="right">' + formatNum(it['Qty']) + '</td>' +
+        '<td class="right">' + formatNum(it['Unit_Price']) + '</td>' +
+        '<td class="right" style="color:var(--navy);">' + formatNum(it['Amount']) + '</td>' +
+        '</tr>';
+    });
+
+    // Grand total footer row
+    html += '<tr style="background:#f0f4fb;border-top:2px solid var(--border);">' +
+      '<td colspan="10" style="text-align:right;font-weight:700;font-size:0.8rem;color:var(--gray);padding:10px 12px;text-transform:uppercase;letter-spacing:0.5px;">GRAND TOTAL</td>' +
+      '<td class="right" style="font-weight:700;">' + formatNum(totalQty) + '</td>' +
+      '<td></td>' +
+      '<td class="right" style="font-weight:700;color:var(--blue);font-size:0.95rem;">' + formatNum(totalAmt) + '</td>' +
+      '</tr>';
+
+    html += '</tbody></table></div>';
+    wrap.innerHTML = html;
+
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── Clear filters ──
+  function clearFilters() {
+    ['fDescription','fSize','fResortName','fInvoiceNo','fDateFrom','fDateTo'].forEach(function(id){
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('fShipmentType').value = '';
+    document.getElementById('resultsSection').style.display = 'none';
+    hideError();
+  }
+
+  // ── Helpers ──
+  function esc(v) {
+    if (v === null || v === undefined) return '';
+    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function formatNum(v) {
+    var n = parseFloat(v);
+    if (isNaN(n)) return '0.00';
+    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+</script>
+</body>
+</html>
